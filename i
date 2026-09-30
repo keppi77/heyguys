@@ -47,7 +47,8 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
 .app{position:relative;height:100vh;height:100dvh;overflow:hidden;}
 .bg{position:absolute;inset:0;z-index:0;overflow:hidden;
   background:radial-gradient(120% 80% at 50% 0%,#1A1230 0%,var(--bg1) 45%,var(--bg0) 100%);}
-.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;will-change:transform;}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;will-change:transform,opacity;
+  transition:opacity .9s var(--ease);}
 .blob-cold{width:70vw;height:70vw;max-width:520px;max-height:520px;top:-22%;left:-28%;
   background:radial-gradient(circle,rgba(59,91,255,.55),rgba(59,91,255,0) 66%);
   animation:drift1 22s ease-in-out infinite;}
@@ -98,8 +99,8 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
 .orb::after{content:"";position:absolute;inset:-14%;border-radius:50%;
   background:radial-gradient(circle,rgba(14,158,146,.26),rgba(14,158,146,0) 60%);filter:blur(30px);}
 .orb-sweep{position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from 0deg,rgba(43,224,200,0) 0deg,rgba(43,224,200,0) 292deg,
-    rgba(43,224,200,.05) 318deg,rgba(110,243,224,.17) 342deg,rgba(160,250,238,.4) 356deg,rgba(232,255,250,.78) 360deg);
+  background:conic-gradient(from 0deg,rgba(43,224,200,0) 0deg,rgba(43,224,200,0) 300deg,
+    rgba(43,224,200,.04) 324deg,rgba(110,243,224,.11) 344deg,rgba(160,250,238,.26) 356deg,rgba(228,255,249,.62) 360deg);
   -webkit-mask:radial-gradient(circle,transparent 0 27%,#000 32%);
   mask:radial-gradient(circle,transparent 0 27%,#000 32%);
   animation:sweep 4.4s linear infinite;}
@@ -153,7 +154,9 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
 .prog-meta{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;
   letter-spacing:.2em;text-transform:uppercase;color:var(--t2);margin-bottom:9px;}
 .prog-meta .cnt{font-family:var(--mono);color:var(--t1);letter-spacing:.08em;}
-.prog-meta .cnt b{color:var(--t0);font-weight:600;font-size:13px;}
+.prog-meta .cnt b{color:var(--t0);font-weight:600;font-size:13px;display:inline-block;}
+.prog-meta .cnt b.roll{animation:cntRoll .36s var(--ease) both;}
+@keyframes cntRoll{from{opacity:0;transform:translateY(8px) scale(.82)}to{opacity:1;transform:none}}
 .prog-track{position:relative;height:3px;border-radius:99px;background:rgba(255,255,255,.07);}
 .prog-fill{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:99px;
   background:var(--acc-ramp);background-size:440px 100%;transition:width .5s var(--ease);}
@@ -161,22 +164,56 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
   transform:translate(-50%,-50%);background:#E8FFFA;
   box-shadow:0 0 10px 3px var(--acc-glow),0 0 22px 8px rgba(43,224,200,.32);
   transition:left .5s var(--ease);}
+/* 10 格采样刻度 */
+.prog-tick{position:absolute;top:50%;width:1px;height:5px;border-radius:1px;
+  transform:translate(-50%,-50%);background:rgba(255,255,255,.15);
+  transition:background .3s var(--ease),box-shadow .3s var(--ease);}
+.prog-tick.on{background:#E8FFFA;box-shadow:0 0 6px var(--acc-glow);}
+/* 每答一题，扫描头在原地炸开一圈 */
+.prog-pulse{position:absolute;top:50%;left:0%;width:10px;height:10px;border-radius:50%;
+  background:var(--acc-lt);opacity:0;pointer-events:none;
+  transform:translate(-50%,-50%) scale(.6);}
+.prog-pulse.go{animation:progPulse .62s var(--ease) .32s forwards;}
+@keyframes progPulse{
+  0%{opacity:.9;transform:translate(-50%,-50%) scale(.6)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(6)}
+}
 
-.q-zone{flex:1;display:flex;flex-direction:column;justify-content:center;padding:26px 0 10px;}
+.q-zone{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:26px 0 10px;}
+/* 换题时自上而下扫一道 */
+.q-sweep{position:absolute;left:-22px;right:-22px;height:1px;top:0;opacity:0;pointer-events:none;z-index:3;
+  background:linear-gradient(90deg,transparent,rgba(138,246,232,.8),transparent);
+  box-shadow:0 0 14px rgba(43,224,200,.55);}
+.q-sweep.go{animation:qSweep .64s cubic-bezier(.4,0,.6,1) forwards;}
+@keyframes qSweep{0%{top:0;opacity:0}12%{opacity:1}100%{top:100%;opacity:0}}
+
+.kbd-hint{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:10.5px;
+  letter-spacing:.08em;color:var(--t2);opacity:0;pointer-events:none;display:none;
+  transition:opacity .5s var(--ease);}
+@media(hover:hover) and (pointer:fine){ .kbd-hint{display:block;} }
+.kbd-hint.show{opacity:1;}
+.kbd-hint b{font-family:var(--mono);font-weight:600;color:var(--acc-lt);font-size:10px;
+  border:1px solid var(--line-2);border-radius:4px;padding:0 4px;margin:0 1px;}
+
 .q-block{will-change:transform,opacity;}
 .q-block.out{animation:qOut .22s var(--ease) forwards;}
-.q-block.in{animation:qIn .42s var(--ease) both;}
+.q-block.in{animation:qIn .44s var(--ease) both;}
 @keyframes qOut{to{opacity:0;transform:translate3d(-22px,0,0);}}
-@keyframes qIn{from{opacity:0;transform:translate3d(26px,0,0);}to{opacity:1;transform:none;}}
+@keyframes qIn{from{transform:translate3d(24px,0,0);}to{transform:none;}}
+/* 题干 → 选项 逐级落位 */
+.q-block.in .stg{animation:stgIn .46s var(--ease) both;animation-delay:calc(var(--i,0) * 54ms);}
+@keyframes stgIn{from{opacity:0;transform:translate3d(0,12px,0);}to{opacity:1;transform:none;}}
 .q-idx{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:.22em;color:var(--acc);margin-bottom:14px;}
 .q-idx .bar{width:22px;height:1px;background:linear-gradient(90deg,var(--acc),transparent);}
 .q-text{font-size:clamp(20px,5.6vw,24px);font-weight:700;line-height:1.5;letter-spacing:.01em;
   color:var(--t0);margin-bottom:26px;}
 .opts{display:flex;flex-direction:column;gap:11px;}
 .opt{position:relative;display:flex;align-items:center;gap:13px;width:100%;text-align:left;
-  padding:15px 15px 15px 14px;border-radius:14px;border:1px solid var(--line);
+  padding:15px 36px 15px 14px;border-radius:14px;border:1px solid var(--line);
   background:linear-gradient(180deg,rgba(255,255,255,.038),rgba(255,255,255,.014));overflow:hidden;
-  transition:border-color .22s var(--ease),background .22s var(--ease),transform .18s var(--ease);}
+  transition:border-color .22s var(--ease),background .22s var(--ease),transform .3s var(--ease),
+    opacity .42s var(--ease),filter .42s var(--ease),box-shadow .3s var(--ease);}
 .opt::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0%;
   background:linear-gradient(90deg,rgba(43,224,200,.26),rgba(138,246,232,.05));
   transition:width .55s var(--ease);}
@@ -185,20 +222,47 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
   place-items:center;font-family:var(--mono);font-size:12px;font-weight:600;
   border:1px solid var(--line-2);color:var(--t1);transition:all .25s var(--ease);}
 .opt .txt{position:relative;flex:1;font-size:14.5px;line-height:1.55;color:var(--t1);transition:color .25s;}
-.opt .glow{position:absolute;right:-30px;top:50%;width:120px;height:120px;
-  transform:translateY(-50%) scale(.4);opacity:0;border-radius:50%;
+.opt .glow{position:absolute;left:100%;top:50%;width:118px;height:118px;
+  transform:translate(-50%,-50%) scale(.55);opacity:0;border-radius:50%;
   background:radial-gradient(circle,rgba(43,224,200,.5),transparent 68%);
-  filter:blur(16px);transition:opacity .35s,transform .45s var(--ease);pointer-events:none;}
-.opt.picked{border-color:var(--acc-line);background:rgba(43,224,200,.07);}
-.opt.picked::before{width:100%;}
-.opt.picked .key{border-color:transparent;color:var(--acc-ink);
-  background:linear-gradient(135deg,#8AF6E8,#2BE0C8);box-shadow:0 0 14px var(--acc-glow);}
-.opt.picked .txt{color:var(--t0);}
-.opt.picked .glow{opacity:1;transform:translateY(-50%) scale(1);}
+  filter:blur(16px);transition:opacity .3s,transform .45s var(--ease);pointer-events:none;}
+/* 桌面端：柔光跟着指针走 */
+.opt.hovering .glow{opacity:.45;transform:translate(-50%,-50%) scale(1);}
+/* 点击涟漪 */
+.opt .rip{position:absolute;width:18px;height:18px;border-radius:50%;pointer-events:none;
+  transform:translate(-50%,-50%) scale(.3);opacity:.6;
+  background:radial-gradient(circle,rgba(138,246,232,.7),rgba(43,224,200,0) 70%);
+  animation:ripGo .68s var(--ease) forwards;}
+@keyframes ripGo{to{transform:translate(-50%,-50%) scale(14);opacity:0}}
+/* 右侧对勾（描边写入） */
+.opt .chk{position:absolute;right:14px;top:50%;display:grid;place-items:center;
+  color:var(--acc-lt);opacity:0;transform:translate(-5px,-50%);
+  transition:opacity .26s var(--ease),transform .34s var(--ease);}
+.opt .chk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;
+  stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:26;
+  transition:stroke-dashoffset .42s var(--ease) .12s;}
 @media(hover:hover){
   .opt:hover{border-color:var(--line-2);background:rgba(255,255,255,.055);}
   .opt:hover .txt{color:var(--t0);}
+  .opt::after{content:"";position:absolute;left:0;top:17%;bottom:17%;width:2px;border-radius:2px;
+    background:linear-gradient(180deg,var(--acc-lt),var(--acc));
+    opacity:0;transform:scaleY(.35);transition:opacity .26s var(--ease),transform .34s var(--ease);}
+  .opt:hover::after{opacity:.65;transform:scaleY(1);}
+  .opt.picked::after{opacity:1;transform:scaleY(1);}
 }
+.opt.picked{border-color:var(--acc-line);background:rgba(43,224,200,.07);
+  box-shadow:0 0 0 1px rgba(43,224,200,.16),0 12px 28px -16px var(--acc-glow);}
+.opt.picked::before{width:100%;}
+.opt.picked .key{border-color:transparent;color:var(--acc-ink);
+  background:linear-gradient(135deg,#8AF6E8,#2BE0C8);box-shadow:0 0 14px var(--acc-glow);
+  animation:keyPop .42s var(--ease);}
+@keyframes keyPop{0%{transform:scale(.8)}58%{transform:scale(1.16)}100%{transform:scale(1)}}
+.opt.picked .txt{color:var(--t0);}
+.opt.picked .glow{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.opt.picked .chk{opacity:1;transform:translate(0,-50%);}
+.opt.picked .chk svg{stroke-dashoffset:0;}
+/* 选定后，其余选项安静退到后面 */
+.opts.settled .opt:not(.picked){opacity:.3;filter:saturate(.5);transform:scale(.972);}
 
 /* ---------- scan ---------- */
 #s-scan .pad{justify-content:center;align-items:center;}
@@ -392,13 +456,16 @@ button{font-family:inherit;border:none;background:none;color:inherit;cursor:poin
           <div class="prog-track">
             <div class="prog-fill" id="progFill"></div>
             <div class="prog-head" id="progHead"></div>
+            <div class="prog-pulse" id="progPulse"></div>
           </div>
         </div>
 
         <div class="q-zone">
+          <div class="q-sweep" id="qSweep"></div>
+          <div class="kbd-hint" id="kbdHint">按 <b>1</b>–<b>4</b> 或 <b>A</b>–<b>D</b> 键也能作答</div>
           <div class="q-block" id="qBlock">
-            <div class="q-idx"><span class="bar"></span><span id="qIdx">QUESTION 01</span></div>
-            <h2 class="q-text" id="qText"></h2>
+            <div class="q-idx stg" style="--i:0"><span class="bar"></span><span id="qIdx">QUESTION 01</span></div>
+            <h2 class="q-text stg" id="qText" style="--i:1"></h2>
             <div class="opts" id="qOpts"></div>
           </div>
         </div>
@@ -699,6 +766,7 @@ function resetState(){
   state.thermal = 50;
   state.jitter = [0,0,0,0,0];
   state.locked = false;
+  chargeAmbient(0);
 }
 
 /* ============================================================
@@ -717,41 +785,122 @@ function show(id){
    5. QUIZ
    ============================================================ */
 var qBlock = $('qBlock'), qText = $('qText'), qOpts = $('qOpts'), qIdx = $('qIdx');
-var qNow = $('qNow'), progFill = $('progFill'), progHead = $('progHead');
+var qNow = $('qNow'), progFill = $('progFill'), progHead = $('progHead'), progPulse = $('progPulse');
+var qSweep = $('qSweep'), kbdHint = $('kbdHint');
+var blobTeal = document.querySelector('.blob-teal');
+
+/* 进度条上的 10 个采样刻度 */
+var progTicks = [];
+(function buildTicks(){
+  var track = progFill.parentNode;
+  for(var i=0;i<QUESTIONS.length;i++){
+    var t = document.createElement('i');
+    t.className = 'prog-tick';
+    t.style.left = ((i + 0.5) / QUESTIONS.length * 100) + '%';
+    track.appendChild(t);
+    progTicks.push(t);
+  }
+})();
+
+/* n = 已采样题数。进度条只在「答完一题」时才前进,读起来像热值在注入 */
+function setProgress(n){
+  n = clamp(n, 0, QUESTIONS.length);
+  var pct = n / QUESTIONS.length * 100;
+  progFill.style.width = pct + '%';
+  progHead.style.left = pct + '%';
+  progPulse.style.left = pct + '%';
+  progTicks.forEach(function(t, i){ t.classList.toggle('on', i < n); });
+  if(n > 0){
+    progPulse.classList.remove('go');
+    void progPulse.offsetWidth;
+    progPulse.classList.add('go');
+  }
+}
+
+/* 背景里的青色热源随答题缓慢蓄能 —— 用的是答对答错都一样的中性量 */
+function chargeAmbient(n){
+  if(blobTeal) blobTeal.style.opacity = (0.5 + 0.03 * n).toFixed(2);
+}
+
+function sweepQuestion(){
+  qSweep.classList.remove('go');
+  void qSweep.offsetWidth;
+  qSweep.classList.add('go');
+}
+
+var kbdTimer = null;
+function showKbdHint(){
+  clearTimeout(kbdTimer);
+  kbdHint.classList.add('show');
+  kbdTimer = setTimeout(hideKbdHint, 4600);
+}
+function hideKbdHint(){
+  clearTimeout(kbdTimer);
+  kbdHint.classList.remove('show');
+}
+
+/* 从点击位置扩散一圈,像墨滴进水里 */
+function ripple(el, ev){
+  var r = el.getBoundingClientRect();
+  var x = (ev && ev.clientX) ? ev.clientX - r.left : r.width * 0.2;
+  var y = (ev && ev.clientY) ? ev.clientY - r.top  : r.height / 2;
+  var s = document.createElement('span');
+  s.className = 'rip';
+  s.style.left = x + 'px';
+  s.style.top = y + 'px';
+  el.appendChild(s);
+  setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 720);
+}
 
 function renderQuestion(){
   var q = QUESTIONS[state.qi];
   qIdx.textContent = 'QUESTION ' + pad2(state.qi+1);
-  qNow.textContent = pad2(state.qi+1);
   qText.textContent = q.q;
 
-  var pct = (state.qi+1)/QUESTIONS.length*100;
-  progFill.style.width = pct + '%';
-  progHead.style.left = pct + '%';
+  qNow.textContent = pad2(state.qi+1);
+  qNow.classList.remove('roll');
+  void qNow.offsetWidth;
+  qNow.classList.add('roll');
 
+  setProgress(state.qi);
+  sweepQuestion();
+  if(state.qi > 0) hideKbdHint();
+
+  qOpts.classList.remove('settled');
   qOpts.innerHTML = '';
   q.o.forEach(function(op, i){
     var b = document.createElement('button');
     b.type = 'button';
-    b.className = 'opt';
+    b.className = 'opt stg';
+    b.style.setProperty('--i', i + 2);
     b.innerHTML =
       '<span class="key">'+LETTERS[i]+'</span>' +
       '<span class="txt">'+op.x+'</span>' +
+      '<span class="chk"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.8"/></svg></span>' +
       '<span class="glow"></span>';
-    b.addEventListener('click', function(){ pick(i, b); });
+    b.addEventListener('click', function(ev){ pick(i, b, ev); });
     qOpts.appendChild(b);
   });
 }
 
-function pick(i, el){
+function pick(i, el, ev){
   if(state.locked) return;
   state.locked = true;
+
+  ripple(el, ev);
+  if(navigator.vibrate){ try{ navigator.vibrate(12); }catch(err){} }
+
+  // 入场动画交棒给选中态,否则两者会打架
+  var all = qOpts.querySelectorAll('.opt');
+  for(var k=0;k<all.length;k++) all[k].classList.remove('stg');
+
   el.classList.add('picked');
-
-  var sib = qOpts.querySelectorAll('.opt');
-  for(var k=0;k<sib.length;k++) sib[k].style.pointerEvents = 'none';
-
+  qOpts.classList.add('settled');
+  hideKbdHint();
   state.answers[state.qi] = i;
+
+  setProgress(state.qi + 1);
+  chargeAmbient(state.qi + 1);
 
   setTimeout(function(){
     state.locked = false;
@@ -760,7 +909,7 @@ function pick(i, el){
     } else {
       nextQuestion();
     }
-  }, 320);
+  }, 460);
 }
 
 function nextQuestion(){
@@ -994,21 +1143,58 @@ function retry(){
   qBlock.classList.remove('in','out');
   void qBlock.offsetWidth;
   qBlock.classList.add('in');
-  progFill.style.width = '0%';
-  progHead.style.left = '0%';
   show('s-intro');
 }
 
 /* ============================================================
    10. BOOT
    ============================================================ */
-$('btnStart').addEventListener('click', function(){
+function startQuiz(){
   resetState();
   renderQuestion();
   qBlock.classList.remove('in','out');
   void qBlock.offsetWidth;
   qBlock.classList.add('in');
   show('s-quiz');
+  setTimeout(showKbdHint, 620);
+}
+
+$('btnStart').addEventListener('click', startQuiz);
+
+/* 桌面端：柔光跟随指针(只在真正用鼠标时启用) */
+var hoveredOpt = null;
+qOpts.addEventListener('pointermove', function(e){
+  if(e.pointerType && e.pointerType !== 'mouse') return;
+  var t = e.target && e.target.closest ? e.target.closest('.opt') : null;
+  if(!t || !qOpts.contains(t)) return;
+  var g = t.querySelector('.glow');
+  if(g){
+    var r = t.getBoundingClientRect();
+    g.style.left = (e.clientX - r.left) + 'px';
+    g.style.top  = (e.clientY - r.top)  + 'px';
+  }
+  if(hoveredOpt !== t){
+    if(hoveredOpt) hoveredOpt.classList.remove('hovering');
+    hoveredOpt = t;
+    t.classList.add('hovering');
+  }
+});
+qOpts.addEventListener('pointerleave', function(){
+  if(hoveredOpt){ hoveredOpt.classList.remove('hovering'); hoveredOpt = null; }
+});
+
+/* 键盘作答：1-4 或 A-D */
+var KEYMAP = { '1':0, '2':1, '3':2, '4':3, 'a':0, 'b':1, 'c':2, 'd':3 };
+document.addEventListener('keydown', function(e){
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  if(!$('s-quiz').classList.contains('active')) return;
+  if(state.locked) return;
+  var idx = KEYMAP[String(e.key).toLowerCase()];
+  if(idx === undefined) return;
+  var opts = qOpts.querySelectorAll('.opt');
+  if(!opts[idx]) return;
+  e.preventDefault();
+  pick(idx, opts[idx], null);
 });
 
 $('btnShare').addEventListener('click', shareResult);
